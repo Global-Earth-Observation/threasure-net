@@ -9,5 +9,5 @@ THREASURE-Net does not rely on any pretrained model nor on reference very high r
 Our approach outperforms existing state-of-the-art methods based on Sentinel data and is competitive with methods based on very high resolution imagery. It can be deployed to generate high-precision annual canopy-height maps, achieving mean absolute errors of 2.62 m, 2.72 m, and 2.88 m at 2.5 m, 5 m, and 10 m resolution, respectively.
 These results highlight the potential of THREASURE-Net for scalable, cost-effective structural monitoring of temperate forests using only freely available satellite data.
 
-[[./figures/deeptree_model.png]]
+[[./figures/threasure_net.png]]
 
