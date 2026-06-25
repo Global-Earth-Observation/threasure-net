@@ -1,0 +1,46 @@
+# @package _global_
+
+# inspired from https://github.com/ashleve/lightning-hydra-template/blob/main/configs/train.yaml
+defaults:
+  - _self_
+  - datamodule: sits.yaml
+  - model: sits.yaml
+  - location: trex.yaml
+  - log_dir: default.yaml
+  - loggers: default.yaml
+  - training_module: sits.yaml
+  - losses: rmse.yaml
+  - metrics: default.yaml
+  - trainer: default.yaml
+  - callbacks: default.yaml
+#  - standardization_metrics: trex.yaml
+
+  - experiment: null
+
+work_dir: ${location.output_folder}
+log_dir: ${work_dir}/log_files
+
+name: ${model.name}_${datamodule.name}
+run_id: ${now:%Y-%m-%d}_${now:%H-%M-%S}
+
+resume_from_checkpoint : null #/your/path/dev/deep-tree/training_experiments/checkpoints/sits_rdb_shuffle_pe_both_f2_training/2025-08-29_13-04-00/last.ckpt
+
+# pretty print config at the start of the run using Rich library
+print_config: True
+
+# disable python warnings if they annoy you
+ignore_warnings: True
+
+# set False to skip model training
+train: true
+
+test: true
+
+# seed for random number generators in pytorch, numpy and python.random
+seed: null
+
+# Log level
+loglevel: INFO
+
+# Use tensor cores ?
+mat_mul_precision : 'high'

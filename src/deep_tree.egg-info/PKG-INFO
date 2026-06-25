@@ -1,0 +1,20 @@
+Metadata-Version: 2.4
+Name: deep-tree
+Version: 0.1.0
+Summary: Tree height estimation at higth resolution from sentinel2.
+Author-email: Florian Helen <helen@globeo.net>
+Requires-Python: >=3.11
+Requires-Dist: esrgan @ git+https://github.com/jmichel-otb/esrgan.git
+Requires-Dist: rich<14,>=13.9.4
+Requires-Dist: rasterio<2,>=1.4.3
+Requires-Dist: flake8-pyproject<2,>=1.2.3
+Requires-Dist: sensorsio<2,>=1.0.1
+Requires-Dist: python-dotenv
+Provides-Extra: cpu
+Requires-Dist: perflint<0.9,>=0.8.1; extra == "cpu"
+Requires-Dist: auto-walrus<0.4,>=0.3.4; extra == "cpu"
+Requires-Dist: flake8-pyproject<2,>=1.2.3; extra == "cpu"
+Provides-Extra: gpu
+Requires-Dist: perflint<0.9,>=0.8.1; extra == "gpu"
+Requires-Dist: auto-walrus<0.4,>=0.3.4; extra == "gpu"
+Requires-Dist: flake8-pyproject<2,>=1.2.3; extra == "gpu"

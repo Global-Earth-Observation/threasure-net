@@ -1,0 +1,8 @@
+name: 'rmse'
+real_losses:
+  - _target_: deep_tree.models.components.loss.PixelLossWrapper
+    loss_fn:
+      _target_: deep_tree.models.components.loss.RMSELoss
+      reduction: "mean"
+    name: "rmse"
+    weight: 1

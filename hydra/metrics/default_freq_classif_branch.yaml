@@ -1,0 +1,38 @@
+validation_metrics:
+  - _target_: deep_tree.models.components.loss.PixelLossWrapper
+    loss_fn:
+      _target_: deep_tree.models.components.loss.RMSELoss
+      reduction: "mean"
+    name: "rmse"
+    weight: 1
+  - _target_: deep_tree.models.components.loss.PixelLossWrapper
+    loss_fn:
+      _target_: torch.nn.L1Loss
+      reduction: "mean"
+    name: "mae"
+    weight: 1
+  - _target_: deep_tree.models.components.loss.PixelLossWrapper
+    loss_fn:
+      _target_: torchmetrics.regression.MeanAbsolutePercentageError
+    name: "mape"
+    weight: 1
+  - _target_: deep_tree.models.components.loss.PixelLossWrapper
+    loss_fn:
+      _target_: torchmetrics.regression.R2Score
+    name: "r2"
+    weight: 1
+  - _target_: deep_tree.models.components.loss.PixelLossWrapper
+    loss_fn:
+      _target_: deep_tree.models.components.loss.GradientDifferenceLoss
+      reduction: "mean"
+    name: "gdl"
+    weight: 1
+#  - _target_: deep_tree.models.components.loss.PixelLossWrapper
+#    loss_fn:
+#      _target_: deep_tree.models.components.loss.FFTHFPowerVariation
+#      is_metric: true
+#    name: "fft"
+#    weight: 1
+
+
+test_metrics: ${metrics.validation_metrics}

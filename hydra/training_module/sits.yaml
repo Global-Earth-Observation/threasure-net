@@ -1,0 +1,35 @@
+optimization_parameters:
+  _target_ : deep_tree.models.datatypes.OptimizationParameters
+  learning_rate : 0.001
+  t_0 : 4
+  t_mult : 2
+  decay_factor: 0.25
+  type: cos_warm_restart_decay
+
+bands: ${datamodule.single_tile_config.bands}
+lidarhd_metrics: ${datamodule.config.lidarhd_metrics}
+
+standardization_parameters:
+  _target_ : deep_tree.models.datatypes.StandardizationParameters
+  bands : ${training_module.bands}
+  mean: [ 271.,  538.,  389.,  921., 2333., 2758., 2995., 3101., 1853.,  905.]
+  std : [ 496.5,  761.5,  861.5, 1165.0, 2409.5, 2926.0, 3124.0, 3219.5, 2146.0, 1363.0]
+target_standardization_parameters:
+  _target_ : deep_tree.models.datatypes.StandardizationParameters
+  mean: [113.0]
+  std : [138.5]
+
+config:
+  _target_: deep_tree.models.datatypes.DeepTreeTrainingModuleConfig
+  optimization: ${training_module.optimization_parameters}
+  standardization: ${training_module.standardization_parameters}
+  target_standardization: ${training_module.target_standardization_parameters}
+  model: ${model.model}
+  real_losses: ${losses.real_losses}
+  validation_metrics: ${metrics.validation_metrics}
+  test_metrics: ${metrics.test_metrics}
+  target_resolution: 5
+
+training_module:
+  _target_: deep_tree.models.lightning.training_sits.DeepTreeSITSTrainingModule
+  config: ${training_module.config}

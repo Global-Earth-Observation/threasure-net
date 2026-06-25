@@ -1,0 +1,44 @@
+model:
+  _target_ : deep_tree.models.torch.deeptree_sits.DeepTreeSITSModel
+  spatio_spectral_encoder:
+    _target_ : deep_tree.models.torch.spatio_spectral_encoder.SSEncoder
+    spectral_encoding:
+      _target_: deep_tree.models.torch.spatio_spectral_encoder.SpectralEncoder
+      model:
+        _target_: deep_tree.models.torch.unet_baseline.Unet
+        inplanes: 10
+        planes: 64
+        encoder_widths: [ 32,64 ]
+        decoder_widths: [ 64,64 ]
+        encoder_norm: "batch"
+        padding_mode: "reflect"
+        decoding_norm: "batch"
+        return_maps: false
+        str_conv_k: 2
+        str_conv_s: 2
+        str_conv_p: 0
+        skip_conv_norm: "batch"
+    pe_encoding:
+      _target_: deep_tree.models.torch.spatio_spectral_encoder.PositionalEncoder
+      d: ${model.model.spatio_spectral_encoder.spectral_encoding.model.planes}
+  temporal_encoder:
+    _target_ : deep_tree.models.torch.temporal_encoder.TemporalEncoder
+    n_head: 4
+    d_k: 16
+    d_in: ${model.model.spatio_spectral_encoder.spectral_encoding.model.planes}
+    attn_dropout: 0.1
+  upsample_module:
+    _target_ : deep_tree.models.torch.upsample.UpsamleFeatures
+    conv_in: 64
+    conv_out: 64
+    upsampling_factor: 2
+  regression:
+    _target_: deep_tree.models.torch.mlp.MLP
+    in_channels: ${model.model.upsample_module.conv_out}
+    out_channels: 1
+    hidden_dims: [ 64, 128, 64 ]
+    bias: true
+
+  sr_10to5: null
+
+name: sits_utae_shuffle_f${model.model.upsample_module.upsampling_factor}

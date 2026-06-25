@@ -1,0 +1,20 @@
+name: 'mae_gdl_fft'
+real_losses:
+  - _target_: deep_tree.models.components.loss.PixelLossWrapper
+    loss_fn:
+      _target_: torch.nn.L1Loss
+      reduction: "mean"
+    name: "mae"
+    weight: 1
+  - _target_: deep_tree.models.components.loss.PixelLossWrapper
+    loss_fn:
+      _target_: deep_tree.models.components.loss.GradientDifferenceLoss
+      reduction: "mean"
+    name: "gdl"
+    weight: 0.1
+  - _target_: deep_tree.models.components.loss.PixelLossWrapper
+    loss_fn:
+      _target_: deep_tree.models.components.loss.FFTHFPowerVariation
+      is_metric: false
+    name: "fft"
+    weight: 0.075

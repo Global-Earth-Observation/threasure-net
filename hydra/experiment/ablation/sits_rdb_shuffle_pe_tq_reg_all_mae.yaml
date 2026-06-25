@@ -1,0 +1,72 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=sits_rdb_shuffle_pe_both
+
+defaults:
+  - override /model: sits_rdb_interpolate_pe_tq_big.yaml
+  - override /training_module: sits.yaml
+  - override /datamodule: sits.yaml
+  - override /losses: mae.yaml
+  - override /metrics: default_freq_classif_branch.yaml
+
+callbacks:
+  image_callback:
+      show_no_veg: true
+
+
+model:
+  model:
+    _target_: deep_tree.models.torch.deeptree_sits.DeepTreeSITSDoubleModel
+    upsample_module:
+      type: "shuffle"
+      init_shuffle: true
+      activate_shuffle: false
+    regression:
+      _target_: deep_tree.models.torch.mlp.MLPDouble
+  name: sits_rdb_shuffle_pe_tq_f${model.model.upsample_module.upsampling_factor}_classif
+
+name: "mae"
+losses:
+  name: 'mae'
+  real_losses:
+    - _target_: deep_tree.models.components.loss.PixelLossWrapper
+      loss_fn:
+        _target_: deep_tree.models.components.loss.MAELoss
+        weight_nv: 0.1
+      name: "mae"
+      weight: 1.0
+    - _target_: deep_tree.models.components.loss.ClassifMetricWrapper
+      loss_fn:
+        _target_: torch.nn.BCEWithLogitsLoss
+      name: "bce"
+      weight: 1
+
+
+training_module:
+  optimization_parameters:
+    _target_ : deep_tree.models.datatypes.OptimizationParameters
+    learning_rate : 0.001
+    t_0 : 6
+    t_mult : 2
+    decay_factor: 0.25
+    type: cos_warm_restart_decay
+  training_module:
+    _target_: deep_tree.models.lightning.training_sits_cl_reg.DeepTreeRegSITSTrainingModule
+    config: ${training_module.config}
+
+datamodule:
+  config:
+    batch_size: 32
+    testing_validation_batch_size: 64
+  single_tile_config:
+    max_len_sits: 12
+
+trainer:
+  accumulate_grad_batches: 4
+
+
+# all parameters bellow will be merged with parameters from default configurations set above
+# this allows you overwrite only specified parameters
+
+tags: ["SITS_RDB_SHUFFLE_pe_tq_classif_f2"]

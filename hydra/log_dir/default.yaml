@@ -1,0 +1,5 @@
+# @package _global_
+
+hydra:
+  run:
+    dir: ${work_dir}/checkpoints/${name}/${run_id}

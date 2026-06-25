@@ -1,0 +1,21 @@
+name: 'pmae_wgdl_bce'
+weight_non_vegetation: 0.1
+real_losses:
+  - _target_: deep_tree.models.components.loss.PixelLossWrapper
+    loss_fn:
+      _target_: deep_tree.models.components.loss.PatchAvgLoss
+      weight_nv: ${losses.weight_non_vegetation}
+    name: "mae_avg"
+    weight: 1.0
+  - _target_: deep_tree.models.components.loss.PixelLossWrapper
+    loss_fn:
+      _target_: deep_tree.models.components.loss.WeightedGradientDifferenceLoss
+      reduction: "mean"
+      weight_nv: ${losses.weight_non_vegetation}
+    name: "wgdl"
+    weight: 0.33
+  - _target_: deep_tree.models.components.loss.ClassifMetricWrapper
+    loss_fn:
+      _target_: torch.nn.BCEWithLogitsLoss
+    name: "bce"
+    weight: 1

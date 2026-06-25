@@ -1,0 +1,597 @@
+original_work_dir: /gpfswork/rech/fwp/unh79ef/results/sisrs-prod-a100-v2/
+log_dir: ${original_work_dir}/log_files
+data_dir: /gpfswork/rech/fwp/unh79ef/data/sen2vns_patches_extended
+resume_from_checkpoint: null
+start_from_checkpoint: null
+print_config: true
+ignore_warnings: true
+train: true
+seed: null
+step: pretrain
+label: ''
+name: ${model.name}_${losses.name}_${step}${label}
+run_id: ${now:%Y%m%d}_${now:%H%M%S}
+track_carbon: false
+carbon_folder: training_carbon_log
+loglevel: INFO
+mat_mul_precision: high
+datamodule:
+  single_site_config:
+    _target_: torchsisr.dataset.Sen2VnsSingleSiteDatasetConfig
+    load_20m_data: true
+    load_10m_data: true
+    load_b11b12: true
+  config:
+    _target_: torchsisr.dataset.Sen2VnsDataModuleConfig
+    dataset_folder: /gpfswork/rech/fwp/unh79ef/data/sen2vns_patches_extended
+    sites:
+    - ARM
+    - BAMBENW2
+    - BENGA
+    - ESGISB-2
+    - ESGISB-1
+    - ESGISB-3
+    - ESTUAMAR
+    - FR-BIL
+    - FR-LAM
+    - ALSACE
+    - KUDALIAR
+    - LERIDA-1
+    - NARYN
+    - SO1
+    - SUDOUE-2
+    - SUDOUE-3
+    - SUDOUE-4
+    - SUDOUE-6
+    - JAM2018
+    - SUDOUE-5
+    testing_sites:
+    - FR-LQ1
+    - ES-IC3XG
+    - ANJI
+    - MAD-AMBO
+    - ATTO
+    - ES-LTERA
+    - SO2
+    single_site_config: ${datamodule.single_site_config}
+    batch_size: 16
+    testing_validation_batch_size: 64
+    validation_ratio: 0.05
+    train_ratio: 0.95
+    num_workers: 10
+    cache_validation_dataset: false
+    cache_testing_dataset: false
+    prefetch_factor: 4
+  data_module:
+    _target_: torchsisr.dataset.Sen2VnsDataModule
+    config: ${datamodule.config}
+losses:
+  name: l1_sim
+  real_losses: null
+  sim_losses:
+  - _target_: torchsisr.loss_helper.PixelLossWrapper
+    loss:
+      _target_: torchsisr.loss.PerBandWrapper
+      loss:
+        _target_: torch.nn.SmoothL1Loss
+    name: l1
+    bands:
+    - B2
+    - B3
+    - B4
+    - B8
+    weight: 1.0
+  - _target_: torchsisr.loss_helper.PixelLossWrapper
+    loss:
+      _target_: torchsisr.loss.PerBandWrapper
+      loss:
+        _target_: torch.nn.SmoothL1Loss
+    name: l1
+    bands:
+    - B5
+    - B6
+    - B7
+    - B8A
+    weight: 1.0
+  wald_losses:
+  - _target_: torchsisr.loss_helper.PixelLossWrapper
+    loss:
+      _target_: torchsisr.loss.PerBandWrapper
+      loss:
+        _target_: torch.nn.SmoothL1Loss
+    name: l1
+    bands:
+    - B11
+    - B12
+    weight: 1.0
+metrics:
+  validation_metrics:
+  - _target_: torchsisr.loss_helper.PixelLossWrapper
+    loss:
+      _target_: torchsisr.loss.PerBandWrapper
+      loss:
+        _target_: torchsisr.loss.PeakSignalNoiseRatio
+        data_range: 1.0
+    name: psnr
+    bands:
+    - B2
+    - B3
+    - B4
+    - B8
+    - B5
+    - B6
+    - B7
+    - B8A
+  - _target_: torchsisr.loss_helper.AgainstHRInputPixelLossWrapper
+    loss:
+      _target_: torchsisr.loss.LRFidelity
+      loss:
+        _target_: torchsisr.loss.RMSELoss
+      factor: 2.0
+      mtf: 0.1
+    name: lr_rmse
+    bands:
+    - B2
+    - B3
+    - B4
+    - B8
+  - _target_: torchsisr.loss_helper.AgainstLRInputPixelLossWrapper
+    loss:
+      _target_: torchsisr.loss.LRFidelity
+      loss:
+        _target_: torchsisr.loss.RMSELoss
+      factor: 4.0
+      mtf: 0.1
+    name: lr_rmse
+    bands:
+    - B5
+    - B6
+    - B7
+    - B8A
+  - _target_: torchsisr.loss_helper.PixelLossWrapper
+    loss:
+      _target_: torchsisr.loss.HRFidelity
+      factor: 2.0
+      mtf: 0.1
+      loss:
+        _target_: torchsisr.loss.RMSELoss
+    name: hr_rmse
+    bands:
+    - B2
+    - B3
+    - B4
+    - B8
+  - _target_: torchsisr.loss_helper.PixelLossWrapper
+    loss:
+      _target_: torchsisr.loss.HRFidelity
+      factor: 4.0
+      mtf: 0.1
+      loss:
+        _target_: torchsisr.loss.RMSELoss
+    name: hr_rmse
+    bands:
+    - B5
+    - B6
+    - B7
+    - B8A
+  - _target_: torchsisr.loss_helper.PixelLossWrapper
+    loss:
+      _target_: torchsisr.loss.GradientStrataWrapper
+      loss:
+        _target_: torchsisr.loss.RMSELoss
+      grad_mag_min: 0.006770164705812931
+      grad_mag_max: 1.7976931348623157e+308
+    name: high_grad_strata_rmse
+    bands:
+    - B2
+    - B3
+    - B4
+    - B8
+    - B5
+    - B6
+    - B7
+    - B8A
+  - _target_: torchsisr.loss_helper.AgainstLRInputPixelLossWrapper
+    loss:
+      _target_: torchsisr.loss.LRFidelity
+      loss:
+        _target_: torchsisr.loss.RMSELoss
+      factor: 4.0
+      mtf: 0.1
+    name: lr_rmse
+    bands:
+    - B11
+    - B12
+  - _target_: torchsisr.loss_helper.PixelLossWrapper
+    loss:
+      _target_: torchsisr.loss.PerBandWrapper
+      dimension_4_needed: true
+      loss:
+        _target_: torchmetrics.image.StructuralSimilarityIndexMeasure
+        data_range: 1.0
+    name: ssim
+    bands:
+    - B2
+    - B3
+    - B4
+    - B8
+    - B5
+    - B6
+    - B7
+    - B8A
+  - _target_: torchsisr.loss_helper.AgainstLRInputPixelLossWrapper
+    loss:
+      _target_: torchsisr.loss.FFTHFPowerVariation
+      scale_factor: 4.0
+      support: 0.125
+    name: fft_hf_power_variation_bicubic
+    bands:
+    - B5
+    - B6
+    - B7
+    - B8A
+    - B11
+    - B12
+  - _target_: torchsisr.loss_helper.AgainstHRInputPixelLossWrapper
+    loss:
+      _target_: torchsisr.loss.FFTHFPowerVariation
+      scale_factor: 2.0
+      support: 0.25
+    name: fft_hf_power_variation_bicubic
+    bands:
+    - B2
+    - B3
+    - B4
+    - B8
+  - _target_: torchsisr.loss_helper.PixelLossWrapper
+    loss:
+      _target_: torchsisr.loss.FFTHFPowerVariation
+      scale_factor: 1.0
+      support: 0.25
+    name: fft_hf_power_variation_target
+    bands:
+    - B2
+    - B3
+    - B4
+    - B8
+  - _target_: torchsisr.loss_helper.PixelLossWrapper
+    loss:
+      _target_: torchsisr.loss.FFTHFPowerVariation
+      scale_factor: 1.0
+      support: 0.125
+    name: fft_hf_power_variation_target
+    bands:
+    - B5
+    - B6
+    - B7
+    - B8A
+  - _target_: torchsisr.loss_helper.AgainstLRInputPixelLossWrapper
+    loss:
+      _target_: torchsisr.loss.PerBandTVVariation
+      scale_factor: 4.0
+    name: tv_variation_bicubic
+    bands:
+    - B5
+    - B6
+    - B7
+    - B8A
+    - B11
+    - B12
+  - _target_: torchsisr.loss_helper.AgainstHRInputPixelLossWrapper
+    loss:
+      _target_: torchsisr.loss.PerBandTVVariation
+      scale_factor: 2.0
+    name: tv_variation_bicubic
+    bands:
+    - B2
+    - B3
+    - B4
+    - B8
+  - _target_: torchsisr.loss_helper.PixelLossWrapper
+    loss:
+      _target_: torchsisr.loss.PerBandTVVariation
+      scale_factor: 1.0
+    name: tv_variation_target
+    bands:
+    - B2
+    - B3
+    - B4
+    - B8
+  - _target_: torchsisr.loss_helper.PixelLossWrapper
+    loss:
+      _target_: torchsisr.loss.PerBandTVVariation
+      scale_factor: 1.0
+    name: tv_variation_target
+    bands:
+    - B5
+    - B6
+    - B7
+    - B8A
+  - _target_: torchsisr.loss_helper.AgainstLRInputPixelLossWrapper
+    loss:
+      _target_: torchsisr.loss.PerBandBRISQUEVariation
+      scale_factor: 4.0
+    name: brisque_variation_bicubic
+    bands:
+    - B5
+    - B6
+    - B7
+    - B8A
+    - B11
+    - B12
+  - _target_: torchsisr.loss_helper.AgainstHRInputPixelLossWrapper
+    loss:
+      _target_: torchsisr.loss.PerBandBRISQUEVariation
+      scale_factor: 2.0
+    name: brisque_variation_bicubic
+    bands:
+    - B2
+    - B3
+    - B4
+    - B8
+  - _target_: torchsisr.loss_helper.PixelLossWrapper
+    loss:
+      _target_: torchsisr.loss.PerBandBRISQUEVariation
+      scale_factor: 1.0
+    name: brisque_variation_target
+    bands:
+    - B2
+    - B3
+    - B4
+    - B8
+  - _target_: torchsisr.loss_helper.PixelLossWrapper
+    loss:
+      _target_: torchsisr.loss.PerBandBRISQUEVariation
+      scale_factor: 1.0
+    name: brisque_variation_target
+    bands:
+    - B5
+    - B6
+    - B7
+    - B8A
+  - _target_: torchsisr.loss_helper.AgainstHRInputPixelLossWrapper
+    loss:
+      _target_: torchsisr.loss.PerBandBRISQUE
+    name: brisque
+    bands:
+    - B2
+    - B3
+    - B4
+    - B8
+  - _target_: torchsisr.loss_helper.AgainstLRInputPixelLossWrapper
+    loss:
+      _target_: torchsisr.loss.PerBandBRISQUE
+    name: brisque
+    bands:
+    - B5
+    - B6
+    - B7
+    - B8A
+    - B11
+    - B12
+  wald_validation_metrics:
+  - _target_: torchsisr.loss_helper.PixelLossWrapper
+    loss:
+      _target_: torchsisr.loss.PerBandWrapper
+      loss:
+        _target_: torchsisr.loss.PeakSignalNoiseRatio
+        data_range: 1.0
+    name: psnr
+    bands:
+    - B11
+    - B12
+  - _target_: torchsisr.loss_helper.PixelLossWrapper
+    loss:
+      _target_: torchsisr.loss.HRFidelity
+      factor: 4.0
+      mtf: 0.1
+      loss:
+        _target_: torchsisr.loss.RMSELoss
+    name: hr_rmse
+    bands:
+    - B11
+    - B12
+  test_metrics: ${metrics.validation_metrics}
+  wald_test_metrics: ${metrics.wald_validation_metrics}
+model:
+  config:
+    _target_: torchsisr.carn.CARNConfig
+    nb_bands: 10
+    groups: 4
+    shared_weights: true
+    nb_features_per_factor: 64
+    upsampling_factor: 2.0
+    nb_cascading_blocks: 3
+    nb_eres_blocks_per_cascading_block: 3
+    kernel_size: 3
+  generator:
+    _target_: torchsisr.carn.CARN
+    config: ${model.config}
+  model:
+    _target_: torchsisr.double_sisr_model.DoubleSuperResolutionModel
+    sisr_model: ${model.generator}
+  name: carn_${model.config.nb_cascading_blocks}x${model.config.nb_eres_blocks_per_cascading_block}x${model.config.nb_eres_blocks_per_cascading_block}g${model.config.groups}sw${model.config.shared_weights}
+adversarial:
+  discriminator:
+    _target_: torchsisr.discriminator.Discriminator
+    in_features: 7
+    encoder_latent_features: 64
+    nb_additional_latent_layers: 4
+    head_latent_features: 512
+    pooling_size: 2
+    high_pass_filtering_mtf: 0.4
+    head_nb_additional_latent_layers: 2
+  optimization_parameters:
+    learning_rate: 1.0e-06
+    t_0: 750
+    t_mult: 2
+  parameters:
+    _target_: torchsisr.training.AdversarialParameters
+    bands:
+    - B2
+    - B3
+    - B4
+    - B5
+    - B6
+    - B7
+    - B8A
+    discriminator: ${adversarial.discriminator}
+    optimization: ${adversarial.optimization_parameters}
+    starting_step_discriminator: 2000
+    starting_step_generator: 2000
+    weight: 0.01
+callbacks:
+  checkpoint1:
+    _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    monitor: validation_losses/total_loss
+    mode: min
+    save_top_k: 1
+    save_last: true
+    verbose: true
+    dirpath: ${original_work_dir}/checkpoints/${name}/${run_id}/
+    filename: '{step:04d}_val_total_loss={validation_losses/total_loss:.8f}'
+    auto_insert_metric_name: false
+  checkpoint2:
+    _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    monitor: validation_real_metrics/brisque_average
+    mode: min
+    save_top_k: 1
+    save_last: true
+    verbose: true
+    dirpath: ${original_work_dir}/checkpoints/${name}/${run_id}/
+    filename: '{step:04d}_brisque_average={validation_real_metrics/brisque_average:.2f}'
+    auto_insert_metric_name: false
+  checkpoint3:
+    _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    every_n_train_steps: 500
+    save_last: true
+    verbose: true
+    dirpath: ${original_work_dir}/checkpoints/${name}/${run_id}/
+    filename: '{step:04d}_auto'
+    auto_insert_metric_name: false
+  lr_monitor:
+    _target_: pytorch_lightning.callbacks.LearningRateMonitor
+    logging_interval: step
+  model_summary:
+    _target_: pytorch_lightning.callbacks.RichModelSummary
+    max_depth: -1
+  rich_progress_bar:
+    _target_: pytorch_lightning.callbacks.RichProgressBar
+    leave: true
+training_module:
+  optimization_parameters:
+    learning_rate: 0.0002
+    t_0: 750
+    t_mult: 2
+  bands:
+  - B2
+  - B3
+  - B4
+  - B8
+  - B5
+  - B6
+  - B7
+  - B8A
+  - B11
+  - B12
+  standardization_parameters:
+    _target_: torchsisr.training.StandardizationParameters
+    bands: ${training_module.bands}
+    mean:
+    - 0.0478
+    - 0.0765
+    - 0.0893
+    - 0.2622
+    - 0.1253
+    - 0.2182
+    - 0.2524
+    - 0.2815
+    - 0.2472
+    - 0.1665
+    std:
+    - 0.0289
+    - 0.04
+    - 0.0679
+    - 0.0811
+    - 0.0615
+    - 0.0645
+    - 0.0772
+    - 0.082
+    - 0.1196
+    - 0.116
+  batch_simulation_parameters:
+    _target_: torchsisr.training.BatchSimulationParameters
+    mtf_min: 0.3
+    mtf_max: 0.7
+    noise_multiplier_min: 2.0
+    noise_multiplier_max: 3.0
+    noise_std:
+    - 0.000578
+    - 0.0008
+    - 0.001358
+    - 0.001622
+    - 0.00123
+    - 0.00129
+    - 0.001544
+    - 0.00164
+  wald_parameters:
+    _target_: torchsisr.training.WaldParameters
+    losses: ${losses.wald_losses}
+    validation_metrics: ${metrics.wald_validation_metrics}
+    test_metrics: ${metrics.wald_test_metrics}
+    validation_margin: 32
+    mtf_min: 0.3
+    mtf_max: 0.7
+    noise_multiplier_min: 2.0
+    noise_multiplier_max: 3.0
+    noise_std:
+    - 0.00040749
+    - 0.000564
+    - 0.00095739
+    - 0.00114351
+    - 0.0012226815
+    - 0.0012823245
+    - 0.0015348132
+    - 0.001630242
+    - 0.0023777676
+    - 0.002306196
+    pad_to_input_size: true
+  config:
+    _target_: torchsisr.training.DoubleSISRTrainingModuleConfig
+    model: ${model.model}
+    optimization: ${training_module.optimization_parameters}
+    standardization: ${training_module.standardization_parameters}
+    batch_simulation: ${training_module.batch_simulation_parameters}
+    adversarial: null
+    real_losses: ${losses.real_losses}
+    sim_losses: ${losses.sim_losses}
+    validation_metrics: ${metrics.validation_metrics}
+    test_metrics: ${metrics.test_metrics}
+    wald: ${training_module.wald_parameters}
+    validation_margin: 64
+    align_min_max: true
+  training_module:
+    _target_: torchsisr.training.DoubleSISRTrainingModule
+    config: ${training_module.config}
+trainer:
+  _target_: pytorch_lightning.Trainer
+  accelerator: gpu
+  devices: 1
+  min_epochs: 1
+  max_epochs: 20
+  log_every_n_steps: 5
+  val_check_interval: 162
+  num_sanity_val_steps: 0
+  precision: 16-mixed
+  deterministic: false
+loggers:
+  tensorboard:
+    _target_: pytorch_lightning.loggers.TensorBoardLogger
+    save_dir: ${original_work_dir}/tb_logs
+    name: ${name}
+    version: ${run_id}
+  csv:
+    _target_: pytorch_lightning.loggers.CSVLogger
+    save_dir: ${original_work_dir}/csv_logs
+    name: ${name}
+    version: ${run_id}

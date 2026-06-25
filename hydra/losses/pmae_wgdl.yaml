@@ -1,0 +1,25 @@
+name: 'pmae_wgdl'
+real_losses:
+  - _target_: deep_tree.models.components.loss.PixelLossWrapper
+    loss_fn:
+      _target_: deep_tree.models.components.loss.PatchAvgLoss
+    name: "mae_avg"
+    weight: 1
+#  - _target_: deep_tree.models.components.loss.PixelLossWrapper
+#    loss_fn:
+#      _target_: torch.nn.L1Loss
+#      reduction: "mean"
+#    name: "mae"
+#    weight: 1
+  - _target_: deep_tree.models.components.loss.PixelLossWrapper
+    loss_fn:
+      _target_: deep_tree.models.components.loss.WeightedGradientDifferenceLoss
+      reduction: "mean"
+    name: "wgdl"
+    weight: 1
+#  - _target_: deep_tree.models.components.loss.PixelLossWrapper
+#    loss_fn:
+#      _target_: deep_tree.models.components.loss.FFTMagnitudeLoss
+#      reduction: "mean"
+#    name: "fft"
+#    weight: 0.01

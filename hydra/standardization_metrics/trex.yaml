@@ -1,0 +1,4 @@
+config:
+  nb_batches: 10000
+  super_resolution_factor: 2
+  filename: "standardization_metrics_sits.json"

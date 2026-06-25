@@ -1,0 +1,16 @@
+esrgan @ git+https://github.com/jmichel-otb/esrgan.git
+rich<14,>=13.9.4
+rasterio<2,>=1.4.3
+flake8-pyproject<2,>=1.2.3
+sensorsio<2,>=1.0.1
+python-dotenv
+
+[cpu]
+perflint<0.9,>=0.8.1
+auto-walrus<0.4,>=0.3.4
+flake8-pyproject<2,>=1.2.3
+
+[gpu]
+perflint<0.9,>=0.8.1
+auto-walrus<0.4,>=0.3.4
+flake8-pyproject<2,>=1.2.3

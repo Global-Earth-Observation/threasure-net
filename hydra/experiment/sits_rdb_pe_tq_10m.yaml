@@ -1,0 +1,56 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=sits_rdb_shuffle_pe_both
+
+defaults:
+  - override /model: sits_rdb_shuffle_pe_tq_classif.yaml
+  - override /training_module: sits.yaml
+  - override /datamodule: sits.yaml
+  - override /losses: pmae_wgdl_classif_branch.yaml
+  - override /metrics: default_freq_classif_branch.yaml
+
+callbacks:
+  image_callback:
+      show_no_veg: true
+
+
+model:
+  model:
+    upsample_module: null
+    regression:
+      _target_: deep_tree.models.torch.mlp.MLPDouble
+      in_channels: 64
+  name: sits_rdb_pe_tq_10m_classif
+
+
+training_module:
+  optimization_parameters:
+    _target_ : deep_tree.models.datatypes.OptimizationParameters
+    learning_rate : 0.001
+    t_0 : 6
+    t_mult : 2
+    decay_factor: 0.25
+    type: cos_warm_restart_decay
+  training_module:
+    _target_: deep_tree.models.lightning.training_sits_cl_reg.DeepTreeRegSITSTrainingModule
+    config: ${training_module.config}
+
+  config:
+    target_resolution: 10
+
+datamodule:
+  config:
+    batch_size: 32
+    testing_validation_batch_size: 64
+  single_tile_config:
+    max_len_sits: 12
+
+trainer:
+  accumulate_grad_batches: 4
+
+
+# all parameters bellow will be merged with parameters from default configurations set above
+# this allows you overwrite only specified parameters
+
+tags: ["SITS_RDB_pe_tq_classif_10m"]

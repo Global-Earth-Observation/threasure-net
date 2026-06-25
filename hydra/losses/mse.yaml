@@ -1,0 +1,10 @@
+name: 'test'
+real_losses:
+  - _target_: deep_tree.models.components.loss.PixelLossWrapper
+    loss_fn:
+      _target_: deep_tree.models.components.loss.Loss
+      loss:
+        _target_: torch.nn.MSELoss
+      reduction: "mean"
+    name: "mse"
+    weight: 1

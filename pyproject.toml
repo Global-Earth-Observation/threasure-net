@@ -1,0 +1,151 @@
+[project]
+authors = [{name = "Florian Helen", email = "helen@globeo.net"}]
+description = "Tree height estimation at higth resolution from sentinel2."
+name = "deep-tree"
+requires-python = ">= 3.11"
+version = "0.1.0"
+
+dependencies = [ "esrgan @ git+https://github.com/jmichel-otb/esrgan.git", "rich>=13.9.4,<14", "rasterio>=1.4.3,<2", "flake8-pyproject>=1.2.3,<2", "sensorsio>=1.0.1,<2", "python-dotenv"]
+
+[tool.pixi.project]
+channels = ["nvidia/label/cuda-11.8.0", "nvidia", "pytorch", "conda-forge"]
+platforms = ["linux-64"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.pixi.dependencies]
+python = ">=3.11"
+pytorch = {channel = "pytorch", version = "*"}
+torchvision = {channel = "pytorch", version = ">=0.19.1"}
+einops = ">=0.8.0,<0.9"
+affine = ">=2.4.0,<3"
+lightning = ">=2.4.0,<3"
+torchmetrics = ">=1.5.2,<2"
+pandas = ">=2.2.3,<3"
+hydra-core = ">=1.3.2,<2"
+pynvml = ">=11.5.3,<12"
+tqdm = ">=4.67.1,<5"
+types-tqdm = ">=4.67.0.20241119,<5"
+pandas-stubs = ">=2.2.3.241009,<3"
+torchdata = ">=0.9.0,<0.10"
+piq = ">=0.8.0,<0.9"
+matplotlib = ">=3.9.1,<4"
+onnx = ">=1.16.2,<2"
+python-lsp-server = ">=1.12.0,<2"
+types-PyYAML= ">=5.4.10"
+onnxruntime = "*"
+nodejs = ">=18.15.0,<18.16"
+python-wget = "==3.2"
+laspy = "*"
+sqlalchemy = "*"
+pip = "*"
+
+[tool.pixi.feature.gpu.system-requirements]
+cuda = "11.8"
+
+[tool.pixi.feature.gpu.dependencies]
+pytorch-cuda = "11.8.*"
+ruff = ">=0.7.4,<0.8"
+pre-commit = ">=4.0.1,<5"
+pytest = ">=8.3.3,<9"
+pytest-cov = ">=6.0.0,<7"
+mypy = ">=1.13.0,<2"
+isort = ">=5.13.2,<6"
+black = ">=24.10.0,<25"
+pyupgrade = ">=3.19.0,<4"
+refurb = ">=2.0.0,<3"
+flake8 = ">=7.1.1,<8"
+pylint = ">=3.3.1,<4"
+flake8-bugbear = ">=24.10.31,<25"
+ipython = ">=8.29.0,<9"
+typeguard = ">=4.4.1,<5"
+onnx2torch = "==1.5.15"
+
+[tool.pixi.feature.cpu.dependencies]
+pytorch = "2.5.1.*"
+ruff = ">=0.7.4,<0.8"
+pre-commit = ">=4.0.1,<5"
+pytest = ">=8.3.3,<9"
+pytest-cov = ">=6.0.0,<7"
+mypy = ">=1.13.0,<2"
+isort = ">=5.13.2,<6"
+black = ">=24.10.0,<25"
+pyupgrade = ">=3.19.0,<4"
+refurb = ">=2.0.0,<3"
+flake8 = ">=7.1.1,<8"
+pylint = ">=3.3.1,<4"
+flake8-bugbear = ">=24.10.31,<25"
+ipython = ">=8.29.0,<9"
+typeguard = ">=4.4.1,<5"
+ipdb = "0.13.*"
+jedi =  "0.19.*"
+epc = "0.0.*"
+pyright = "1.1.*"
+pylsp-mypy = "0.6.*"
+rope = "1.13.*"
+python-lsp-ruff = "2.2.*"
+python-lsp-black =  "2.0.*"
+pyflakes = "3.2.*"
+
+[project.optional-dependencies]
+cpu = [ "perflint>=0.8.1,<0.9", "auto-walrus>=0.3.4,<0.4", "flake8-pyproject>=1.2.3,<2"]
+gpu = [ "perflint>=0.8.1,<0.9", "auto-walrus>=0.3.4,<0.4", "flake8-pyproject>=1.2.3,<2"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/deep_tree"]
+
+[tool.pixi.pypi-dependencies]
+deep-tree = { path = "./.", editable = true }
+torchsisr = { path = "./thirdparties/torchsisr", editable = true }
+
+[tool.pixi.tasks]
+
+[tool.pixi.environments]
+gpu = { features = ["gpu"]}
+cpu = { features = ["cpu"], solve-group = "default" }
+
+[tool.pytest.ini_options]
+addopts = "--ignore=thirdparties/torchsisr/tests"
+markers =[
+    "requires_dataset: Requires the inputs dataset folder."
+]
+
+[tool.mypy]
+python_version = "3.13"
+check_untyped_defs = true
+exclude = [
+         "thirdparties/torchsisr"
+]
+
+[[tool.mypy.overrides]]
+module = "scipy.*,laspy,wget,geopandas.*,shapely.*,rasterio.*,affine.*,matplotlib.*,piq.*,thirdparties/torchsisr/*/*"
+ignore_missing_imports = true
+follow_untyped_imports = true
+ignore_errors = true
+
+[tool.isort]
+profile = "black"
+known_first_party = "tamrfsits"
+known_third_party = ["hydra"]
+
+[tool.flake8]
+max-line-length = "88"
+extend-select = "B950"
+extend-ignore = "E203,E501,E701"
+
+[tool.pylint.design]
+# Maximum number of arguments for function / method.
+max-args = 25
+
+# Maximum number of positional arguments for function / method.
+max-positional-arguments = 25
+
+# Maximum number of attributes for a class (see R0902).
+max-attributes = 25
+
+# Maximum number of locals for function / method body.
+max-locals = 35
+
+[tool.pylint.imports]
+known-third-party = ["hydra"]

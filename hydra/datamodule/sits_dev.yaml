@@ -1,0 +1,43 @@
+name: "training"
+number_of_bands: 10
+
+single_tile_config:
+  _target_: deep_tree.datamodules.datatypes.DeepTreeSingleTileConfig
+  bands: [ "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B8A", "B11", "B12"]
+  input_resolution: 10
+  target_resolution: 1
+  min_valid_pixels: 100
+  max_masked_pixels: 50
+  min_target_valid: 25
+  min_len_sits: 5
+  max_len_sits: 12
+  cropped_s2_patch_size:  64  # without margin
+  lidar_patch_size: 1000
+  margin_s2: 16
+  nodata_s2: -10000
+  lidarhd_exclude_values: [ -1,  0 ]
+
+
+config:
+  _target_: deep_tree.datamodules.datatypes.DeepTreeDataModuleConfig
+  db_folder: "/your/path/input_data/patches"
+  lidar_folder: "/your/path/input_data/lidarHD/lidarHD_processed"
+  lidar_mask_folder: "/your/path/input_data/lidarHD/lidarHD_mask_5m"
+  s2_folder: "/your/path/input_data/patches"
+  angles_folder: "/your/path/input_data/sun_satellite_angles"
+  tiles: ["30TXQ", "31TDL", "30TXT"]
+#  tiles: ["30TXT", "30TYT", "31UGP","32ULU","31UFP","31UCQ","32TMM","31TGL","31TEJ","32TLT","31TFN","31TEG","31TCK","30TYS","30TXT","30UYV","31TFJ","31UEP","32TLR","31TGM","30TYR","32UMV","30TXQ","32TML","31TDL","31UDS","31TFM","31UEQ","30TWP","31UCR","31TCH","30TXN","32ULV","30UXU","30UYU","30TWN","32TNL","31TFL","31TGK","31TEL","30TXP","31TDG","31TGN","31TDM","32TLS","32TMN","31UFQ","31TEK","31TCJ","31TFK","30UVU","31UDP","30TXR","32TNM","30TXS","30TYP","31TFH","32TLP","31UDQ","31TCL","30UXV","30TYQ","31TGH","31TGJ","31TEH","31TDN","32TLQ","32TNN","31TEM","31UGQ","31UDR","31UCS","32UMU","31TEN","30UVV","30TYN"]
+  lidarhd_metrics: "PERCENTILES_0.95"
+  single_tile_dataset_config: ${datamodule.single_tile_config}
+  batch_size: 64
+  testing_validation_batch_size: 128
+  num_workers: 10
+  cache_validation_dataset: False
+  cache_testing_dataset: False
+  prefetch_factor: 4
+  ref_date: "year"
+
+
+data_module:
+  _target_: deep_tree.datamodules.datamodule_sits.DeepTreeSITSDataModule
+  config: ${datamodule.config}

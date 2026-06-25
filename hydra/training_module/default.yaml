@@ -1,0 +1,33 @@
+optimization_parameters:
+  learning_rate : 0.001
+  t_0 : 4
+  t_mult : 2
+
+bands: ${datamodule.single_tile_config.bands}
+lidarhd_metrics: ${datamodule.config.lidarhd_metrics}
+
+standardization_parameters:
+  _target_ : deep_tree.models.datatypes.StandardizationParameters
+  bands : ${training_module.bands}
+  mean: [313.0, 597.0, 465.0, 1000.0, 2362.0, 2774.0, 3008.0, 3111.0, 1948.0, 1003.0]
+  std : [551.5, 834.5, 964.5, 1257.0, 2434.0, 2944.0, 3135.5, 3231.0, 2228.0, 1474.5]
+
+target_standardization_parameters:
+  _target_ : deep_tree.models.datatypes.StandardizationParameters
+  mean: [114.0]
+  std : [149.0]
+
+config:
+  _target_: deep_tree.models.datatypes.DeepTreeTrainingModuleConfig
+  optimization: ${training_module.optimization_parameters}
+  standardization: ${training_module.standardization_parameters}
+  target_standardization: ${training_module.target_standardization_parameters}
+  model: ${model.model}
+  real_losses: ${losses.real_losses}
+  validation_metrics: ${metrics.validation_metrics}
+  test_metrics: ${metrics.test_metrics}
+  target_resolution: 2.5
+
+training_module:
+  _target_: deep_tree.models.lightning.training.DeepTreeTrainingModule
+  config: ${training_module.config}

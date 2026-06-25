@@ -1,0 +1,41 @@
+model:
+  _target_ : deep_tree.models.torch.deeptree_sits.DeepTreeSITSModel
+  spatio_spectral_encoder:
+    _target_ : deep_tree.models.torch.spatio_spectral_encoder.SSEncoder
+    spectral_encoding:
+      _target_: deep_tree.models.torch.spatio_spectral_encoder.SpectralEncoder
+      model:
+        _target_: deep_tree.models.torch.RDB.RDBNet
+        in_channels: 10
+        out_channels: 64
+        growth_channels: 32
+        num_rdb: 3
+        num_dense_layers: 4
+        activation:
+          _target_: torch.nn.LeakyReLU
+          _partial_: true
+          negative_slope: 0.2
+          inplace: true
+    pe_encoding:
+      _target_: deep_tree.models.torch.spatio_spectral_encoder.PositionalEncoder
+      d: ${model.model.spatio_spectral_encoder.spectral_encoding.model.out_channels}
+  temporal_encoder:
+    _target_ : deep_tree.models.torch.temporal_encoder.TemporalEncoder
+    n_head: 4
+    d_k: 16
+    d_in: ${model.model.spatio_spectral_encoder.spectral_encoding.model.out_channels}
+    attn_dropout: 0.1
+  upsample_module: null
+  regression:
+    _target_: deep_tree.models.torch.mlp.MLP
+    in_channels: ${model.model.spatio_spectral_encoder.spectral_encoding.model.out_channels}
+    out_channels: 1
+    hidden_dims: [ 64, 128, 64 ]
+    bias: true
+
+  sr_10to5:
+    _target_: deep_tree.models.torch.sr_10to5.SRSITSWrapper
+    model:
+      _target_: deep_tree.models.torch.sr_10to5.InferenceSR
+
+name: sits_rdb_sr10to5

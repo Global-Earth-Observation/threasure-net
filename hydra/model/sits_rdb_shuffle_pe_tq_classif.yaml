@@ -1,0 +1,47 @@
+model:
+  _target_ : deep_tree.models.torch.deeptree_sits.DeepTreeSITSDoubleModel
+  spatio_spectral_encoder:
+    _target_ : deep_tree.models.torch.spatio_spectral_encoder.SSEncoder
+    spectral_encoding:
+      _target_: deep_tree.models.torch.spatio_spectral_encoder.SpectralEncoder
+      model:
+        _target_: deep_tree.models.torch.RDB.RDBNet
+        in_channels: 16
+        out_channels: 64
+        growth_channels: 24   # reduce to save memory if needed
+        num_rdb: 4            # more RDB blocks
+        num_dense_layers: 4   # deeper inside each RDB
+        activation:
+          _target_: torch.nn.LeakyReLU
+          _partial_: true
+          negative_slope: 0.2
+          inplace: true
+    pe_encoding:
+      _target_: deep_tree.models.torch.spatio_spectral_encoder.PositionalEncoder
+      d: ${model.model.spatio_spectral_encoder.spectral_encoding.model.out_channels}
+      T: 365
+    pe_type: "abs"
+  temporal_encoder:
+    _target_ : deep_tree.models.torch.temporal_encoder_tq.TemporalEncoderTQ
+    n_head: 4
+    d_k: 16
+    d_in: ${model.model.spatio_spectral_encoder.spectral_encoding.model.out_channels}
+    attn_dropout: 0.1
+  upsample_module:
+    _target_: deep_tree.models.torch.upsample.UpsamleFeatures
+    type: "shuffle"
+    conv_in: 64
+    conv_out: 64
+    upsampling_factor: 2
+    init_shuffle: true
+    activate_shuffle: false
+  regression:
+    _target_: deep_tree.models.torch.mlp.MLPDouble
+    in_channels: ${model.model.upsample_module.conv_out}
+    out_channels: 1
+    hidden_dims: [ 64, 128, 64 ]
+    bias: true
+
+  sr_10to5: null
+
+name: sits_rdb_shuffle_pe_tq_f${model.model.upsample_module.upsampling_factor}_classif
