@@ -63,7 +63,8 @@ class DeepTreeSITSModel(nn.Module):
 
         if batch.angles is not None:
             angles = torch.round(
-                batch.angles[:, :, :, None, None].expand(-1, -1, -1, *sits.shape[-2:])
+                batch.angles[:, :, :, None, None].expand(-1, -1, -1, *sits.shape[-2:]),
+                decimals=4
             )
             sits = torch.concatenate([sits, angles], 2)
 
